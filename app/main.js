@@ -3,39 +3,82 @@
  */
 'use strict'
 
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import {
-    AppRegistry,
     StyleSheet,
-    Text,
-    View
+    View,
+    StatusBar,
+    Navigator,
+    BackAndroid
 } from 'react-native';
+import Home from './container/home.js';
+
+var currNavigator = null;
 
 export default class MainApp extends Component {
+    
+    constructor(props) {
+        super(props);
+        
+        this._onBackAndroid = this._onBackAndroid.bind(this);
+        this._handleConnectivityChange = this._handleConnectivityChange.bind(this);
+    }
+    
+    componentWillMount() {
+        BackAndroid.addEventListener('hardwareBackPress', this._onBackAndroid);
+    }
+    
+    
+    componentWillUnmount() {
+        BackAndroid.removeEventListener('hardwareBackPress', this._onBackAndroid);
+    }
+    
     render() {
         return (
             <View style={styles.container}>
-                <Text style={styles.welcome}>
-                    Welcome to React Native!
-                </Text>
-                <Text style={styles.instructions}>
-                    To get started, edit index.android.js
-                </Text>
-                <Text style={styles.instructions}>
-                    Double tap R on your keyboard to reload,{'\n'}
-                    Shake or press menu button for dev menu
-                </Text>
+                <StatusBar
+                    translucent={true}
+                    backgroundColor="rgba(0, 0, 0, 0.2)"
+                    barStyle="light-content"
+                />
+                <Navigator
+                    initialRoute={{
+                        name: 'home',
+                        component: Home
+                    }}
+                    configureScene={this._configureScene}
+                    renderScene={this._renderScene}/>
             </View>
         );
+    }
+    
+    _configureScene(route, routeStack) {
+        if (route.type == 'Bottom') {
+            return Navigator.SceneConfigs.FloatFromBottom; // 底部弹出
+        } else if (route.type == 'Left') {
+            return Navigator.SceneConfigs.FloatFromLeft; // 底部弹出
+        }
+        return Navigator.SceneConfigs.FloatFromRight;    // 右侧弹出
+    }
+    
+    _renderScene(route, navigator) {
+        currNavigator = navigator;
+        let Component = route.component;
+        return <Component navigator={navigator} route={route} {...route.params} />
+    }
+    
+    _onBackAndroid() {
+        if (currNavigator && currNavigator.getCurrentRoutes().length > 1) {
+            currNavigator.pop();
+            return true;
+        }
+        return false;
     }
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F5FCFF',
     },
     welcome: {
         fontSize: 20,
