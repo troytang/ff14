@@ -11,7 +11,7 @@ import {
     Navigator,
     BackAndroid
 } from 'react-native';
-import Home from './container/home.js';
+import HomeScreen from './container/home/index.js';
 
 var currNavigator = null;
 
@@ -21,7 +21,6 @@ export default class MainApp extends Component {
         super(props);
         
         this._onBackAndroid = this._onBackAndroid.bind(this);
-        this._handleConnectivityChange = this._handleConnectivityChange.bind(this);
     }
     
     componentWillMount() {
@@ -43,8 +42,8 @@ export default class MainApp extends Component {
                 />
                 <Navigator
                     initialRoute={{
-                        name: 'home',
-                        component: Home
+                        name: 'homeScreen',
+                        component: HomeScreen
                     }}
                     configureScene={this._configureScene}
                     renderScene={this._renderScene}/>
