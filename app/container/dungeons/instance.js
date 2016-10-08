@@ -1,7 +1,7 @@
 /**
- * 搜索页面
+ * 副本列表页面
  * 
- * Created by Troy on 2016-10-4 13:25:52
+ * Created by Troy on 2016-10-8 20:30:20
  */
 'use strict'
 
@@ -16,18 +16,15 @@ import {
 } from 'react-native';
 import Header from '../common/F8Header.js';
 import ItemCell from '../common/ItemCell.js';
-import DetailScreen from './detail.js';
-import SearchView from '../common/SearchView.js';
+import EquipmentScreen from './equipment.js';
 
-const LIST_VIEW_REF = 'listView';
-
-export default class CategoryScreen extends Component {
+export default class InstanceScreen extends Component {
 
     constructor(props) {
         super(props)
         var ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.state = {
-            isLoading: false,
+            isLoading: true,
             isLoadAll: false,
             dataSource: ds.cloneWithRows([])
         };
@@ -40,14 +37,12 @@ export default class CategoryScreen extends Component {
             }
         };
 
-        this.isSearching = false;
         this.startIndex = 0;
-        this.searchKey = undefined;
     }
 
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-
+            this.onRefresh();
         });
     }
 
@@ -58,19 +53,9 @@ export default class CategoryScreen extends Component {
                     title={this.props.name}
                     leftItem={this.leftItem}
                     rightItem={this.props.rightItem}
-                    background={require('../home/img/schedule-background.png') }
-                    childrenHeight={DEFAULT_SEARCH_VIEW_HEIGHT}>
+                    background={require('../home/img/schedule-background.png') }>
                 </Header>
-                <SearchView
-                    style={{
-                        position: 'absolute',
-                        top: HEADER_HEIGHT,
-                        left: 0,
-                        right: 0,
-                    }}
-                    onSearch={this.onSearch.bind(this) } />
                 <ListView
-                    ref={LIST_VIEW_REF}
                     enableEmptySection={true}
                     renderRow={this.renderRow.bind(this) }
                     dataSource={this.state.dataSource}
@@ -82,25 +67,23 @@ export default class CategoryScreen extends Component {
     }
 
     renderRow(rowData) {
-        let iconUrl = 'http://gxh.dw.sdo.com:3344/ff14/item_icon/' + rowData.itemIcon;
-        let desc = '需求等级：' + rowData.itemLevelRequired + '    道具等级：' + rowData.itemLevelEquipment
+        let desc = '需求等级：' + rowData.raidInstanceLevel + '    副本人数：' + rowData.raidInstanceCapacity
         return (
             <ItemCell
-                icon={{ uri: iconUrl }}
-                name={rowData.itemUINameCn === '' ? rowData.itemUINameEn : rowData.itemUINameCn}
+                icon={require('../common/img/ic_launcher.png') }
+                name={rowData.raidInstanceName}
                 desc={desc}
                 onPress={() => {
+                    // TODO
                     this.props.navigator.push({
-                        name: 'detailScreen',
-                        component: DetailScreen,
+                        name: 'equipmentScreen',
+                        component: EquipmentScreen,
                         params: {
-                            itemKey: rowData.itemKey,
-                            name: rowData.itemUINameCn === '' ? rowData.itemUINameEn : rowData.itemUINameCn,
-                            icon: { uri: iconUrl },
-                            categoryName: this.props.categoryName,
-                            levelRequired: rowData.itemLevelRequired,
-                            levelEquipment: rowData.itemLevelEquipment,
-                            categoryKey: rowData.itemUICategoryKey
+                            icon: require('../common/img/ic_launcher.png'),
+                            name: rowData.raidInstanceName,
+                            raidInstanceCapacity: rowData.raidInstanceCapacity,
+                            raidInstanceLevel: rowData.raidInstanceLevel,
+                            raidInstanceId: rowData.raidInstanceId
                         }
                     });
                 } } />
@@ -122,68 +105,35 @@ export default class CategoryScreen extends Component {
         }
     }
 
-    onSearch(searchKey) {
-        if (searchKey === undefined || searchKey === '') {
-            ToastAndroid.show('请输入搜索名称', ToastAndroid.SHORT);
-            return;
-        }
-        if (this.isSearching === true) {
-            return;
-        } else {
-            this.isSearching = true;
-            this.setState({
-                isLoading: true,
-                isLoadAll: false
-            });
-        }
-        this.startIndex = 0;
-        let url = 'http://gxh.dw.sdo.com:8080/ff14.portal/business/item/getItemDataList.html?keyword=' + decodeURIComponent(searchKey)
-            + '&itemUIKindKey=0'
-            + '&itemUICategory=0'
-            + '&itemRarity=0'
-            + '&classJobKey=0'
-            + '&maxItemLevel=1000'
-            + '&minItemLevel=0'
-            + '&basicParamKey='
-            + '&basicParamValue=0'
-            + '&startIndex=' + this.startIndex;
+    onRefresh() {
+        this.setState({
+            isLoading: true,
+            isLoadAll: false
+        });
+        let url = 'http://gxh.dw.sdo.com:8080/ff14.portal/business/databank/getAllInstancesByPage.html?startIndex=' + this.startIndex;
         console.log(url);
         fetch(url)
             .then((response) => {
                 return response._bodyText;
             })
             .then((json) => {
-                // 新搜索
                 this.startIndex = JSON.parse(json).data.length;
                 this.setState({
                     isLoading: false,
                     dataSource: this.state.dataSource.cloneWithRows(JSON.parse(json).data)
                 });
-                this.refs[LIST_VIEW_REF].scrollTo({y: 0, animated: false});
-                this.searchKey = searchKey;
                 console.log('---------------------------', this.startIndex);
-                this.isSearching = false;
             });
     }
 
     onLoadMore() {
-        if (this.searchKey === undefined || this.state.isLoadAll === true) {
+        if (this.state.isLoadAll === true || this.state.isLoading === true) {
             return;
         }
         this.setState({
             isLoading: true
         });
-        console.log('onLoadMore', this.searchKey);
-        let url = 'http://gxh.dw.sdo.com:8080/ff14.portal/business/item/getItemDataList.html?keyword=' + decodeURIComponent(this.searchKey)
-            + '&itemUIKindKey=0'
-            + '&itemUICategory=0'
-            + '&itemRarity=0'
-            + '&classJobKey=0'
-            + '&maxItemLevel=1000'
-            + '&minItemLevel=0'
-            + '&basicParamKey='
-            + '&basicParamValue=0'
-            + '&startIndex=' + this.startIndex;
+        let url = 'http://gxh.dw.sdo.com:8080/ff14.portal/business/databank/getAllInstancesByPage.html?startIndex=' + this.startIndex;
         console.log(url);
         fetch(url)
             .then((response) => {
@@ -207,8 +157,6 @@ export default class CategoryScreen extends Component {
                     });
                     console.log('---------------------------', this.startIndex);
                 }
-
-                this.isSearching = false;
             });
     }
 };

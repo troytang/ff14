@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import Header from '../common/F8Header.js';
 import KindScreen from '../material/kind.js';
+import InstanceScreen from '../dungeons/instance.js';
 
 const EMPTY_CELL_HEIGHT = Dimensions.get('window').height > 600 ? 200 : 150;
 const LIST_VIEW_ITEM = (Dimensions.get('window').width - 20) / 3;
@@ -27,7 +28,8 @@ export default class HomeScreen extends Component {
         super(props);
         var ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.state = {
-            dataSource: ds.cloneWithRows([{ name: '道具', key: 'daoju', icon: require('../common/img/ic_launcher.png') }])
+            dataSource: ds.cloneWithRows([{ name: '道具', key: 'item', icon: require('../common/img/ic_launcher.png') }
+                , { name: '副本掉落', key: 'dungeons', icon: require('../common/img/ic_launcher.png') }])
         };
     }
 
@@ -61,7 +63,7 @@ export default class HomeScreen extends Component {
     renderRow(rowData) {
         return (
             <TouchableOpacity style={styles.item} onPress={() => {
-                this.gotoKindScreen(rowData)
+                this.onRowClicked(rowData);
             } }>
                 <View style={{ width: LIST_VIEW_ITEM, height: LIST_VIEW_ITEM }}>
                     <Image style={{ width: LIST_VIEW_ITEM, height: LIST_VIEW_ITEM }} source={rowData.icon}>
@@ -96,10 +98,33 @@ export default class HomeScreen extends Component {
         );
     }
 
+    onRowClicked(rowData) {
+        switch (rowData.key) {
+            case 'item':
+                this.gotoKindScreen(rowData);
+                break;
+            case 'dungeons':
+                this.gotoDungeonsScreen(rowData);
+                break;
+            default:
+                break;
+        }
+    }
+
     gotoKindScreen(rowData) {
         this.props.navigator.push({
             name: 'kindScreen',
             component: KindScreen,
+            params: {
+                name: rowData.name,
+            }
+        });
+    }
+
+    gotoDungeonsScreen(rowData) {
+        this.props.navigator.push({
+            name: 'instanceScreen',
+            component: InstanceScreen,
             params: {
                 name: rowData.name,
             }

@@ -26,7 +26,7 @@ import StockScreen from './stock.js';
 const CLASS_JOB = ['0', '剑术师', '格斗师', '斧术师', '枪术师', '弓箭手', '幻术师', '咒术士', '刻木匠', '锻铁匠',
     '铸甲匠', '雕金师', '制革匠', '裁衣匠', '炼金术士', '烹调师', '采矿工', '园艺工', '捕鱼人', '骑士', '武僧',
     '战士', '龙骑士', '吟游诗人', '白魔法师', '黑魔法师', '秘术师', '召唤师', '学者', '双剑师',
-    '忍者', '机工师', '暗黑骑士', '占星术士',];
+    '忍者', '机工师', '暗黑骑士', '占星术士'];
 const REPAIR_MATERIAL = [5594, 5595, 5596, 5597, 5598, 10386];
 
 export default class DetailScreen extends Component {
@@ -35,7 +35,10 @@ export default class DetailScreen extends Component {
         super(props);
 
         this.state = {
+            icon: this.props.icon || require('../common/img/ic_launcher.png'),
             categoryName: this.props.categoryName,
+            levelRequired: this.props.levelRequired || '?',
+            levelEquipment: this.props.levelEquipment || '?',
             classJob: [],
             baseParams: [],
             bonusParams: [],
@@ -61,7 +64,7 @@ export default class DetailScreen extends Component {
                     component: StockScreen,
                     type: 'Bottom',
                     params: {
-                        icon: this.props.icon,
+                        icon: this.state.icon,
                         itemKey: this.props.itemKey,
                         name: '交易情况',
                         itemName: this.props.name,
@@ -81,8 +84,8 @@ export default class DetailScreen extends Component {
             this.getBonusParamsByItemKey();
             this.getHqBasicParamsByItemKey();
             this.getHqBonusParamsByItemKey();
-            if (!this.props.categoryName) {
-                this.getItemUICategoryByKey();
+            if (!this.props.categoryName && this.props.categoryKey) {
+                this.getItemUICategoryByKey(this.props.categoryKey);
             }
         });
     }
@@ -98,10 +101,10 @@ export default class DetailScreen extends Component {
                     background={require('../home/img/schedule-background.png') }>
                 </Header>
                 <IdentityCell
-                    icon={this.props.icon}
+                    icon={this.state.icon}
                     name={this.state.categoryName}
-                    first={'需要等级：' + this.props.levelRequired}
-                    second={'物品等级：' + this.props.levelEquipment}
+                    first={'需要等级：' + this.state.levelRequired}
+                    second={'物品等级：' + this.state.levelEquipment}
                     classJob={this.state.classJob} />
                 <View style={styles.body} >
                     <ScrollView>
@@ -209,17 +212,23 @@ export default class DetailScreen extends Component {
                 return response._bodyText;
             })
             .then((json) => {
-                return JSON.parse(JSON.parse(json).data.itemData).classjob;
+                return JSON.parse(json).data;
             })
-            .then((classJob) => {
+            .then((detail) => {
                 this.setState({
-                    classJob: classJob
+                    icon: {uri: ('http://gxh.dw.sdo.com:3344/ff14/item_icon/' + detail.itemIcon)},
+                    classJob: JSON.parse(detail.itemData).classJob,
+                    levelEquipment: detail.itemLevelEquipment,
+                    levelRequired: detail.itemLevelRequired
                 });
+                if (!this.props.categoryKey) {
+                    this.getItemUICategoryByKey(detail.itemUICategoryKey);
+                }
             });
     }
 
-    getItemUICategoryByKey() {
-        let url = 'http://gxh.dw.sdo.com:8080/ff14.portal/business/item/getItemUICategoryByKey.html?itemUICategoryKey=' + this.props.categoryKey;
+    getItemUICategoryByKey(key) {
+        let url = 'http://gxh.dw.sdo.com:8080/ff14.portal/business/item/getItemUICategoryByKey.html?itemUICategoryKey=' + key;
         console.log(url);
         fetch(url)
             .then((response) => {
