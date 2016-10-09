@@ -14,12 +14,17 @@ import {
     InteractionManager
 } from 'react-native';
 import Header from '../common/F8Header.js';
-import ItemCell from '../common/ItemCell.js';
+import IdentityCell from '../common/IdentityCell.js';
 
 export default class PetScreen extends Component {
 
     constructor(props) {
         super(props);
+
+        var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+        this.state = {
+            dataSource: ds.cloneWithRows([])
+        };
 
         this.leftItem = {
             title: 'FF14',
@@ -45,7 +50,23 @@ export default class PetScreen extends Component {
                     rightItem={this.props.rightItem}
                     background={require('../home/img/schedule-background.png') }>
                 </Header>
+                <ListView
+                    dataSource={this.state.dataSource}
+                    renderRow={this.renderRow.bind(this)}
+                    />
             </View>
+        );
+    }
+
+    renderRow(rowData) {
+        return (
+            <IdentityCell
+                icon={{uri: rowData.image}}
+                name={rowData.name}
+                first={rowData.version}
+                second={rowData.dropPoint}
+                flex={0}
+                />
         );
     }
 
@@ -67,12 +88,18 @@ export default class PetScreen extends Component {
                     for (var j = 0; j < ff.length; j++) {
                         var tr = ff[j];
                         var fff = tr.match(/<td[\s\S]*?<\/td>/g);
-                        if (fff && fff[0] !== '') {
+                        if (fff && j !== 0) {
                             pets.push({
                                 name: fff[0].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*>)?(<\/strong>)?/g, ''),
                                 version: fff[1].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*>)?(<\/strong>)?/g, ''),
-                                dropPoint: fff[2].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*>)?(<\/strong>)?/g, '').replace(/(<span.*>)?(<\/span>)?/g, '').replace(/(<br.*\/>)?/g, '').replace(/(<a.*>)?(<\/a>)?/g, '').replace(/(<p.*>)*(<\/p>)*/g, ''),
-                                image: fff[3].substr(fff[3].indexOf('http:'), fff[3].indexOf('.jpg"'))
+                                dropPoint: fff[2].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '')
+                                    .replace(/(<strong.*>)?(<\/strong>)?/g, '')
+                                    .replace(/(<span.*">)?(<\/span>)?/g, '')
+                                    .replace(/(<br.*\/>)?/g, '')
+                                    .replace(/(<a.*">)?(<\/a>)?/g, '')
+                                    .replace(/[&nbsp;\s]?/g, '')
+                                    .replace(/(<p.*">)?(<\/p>)?/g, ''),
+                                image: fff[3].substring(fff[3].indexOf('http:'), fff[3].indexOf('.jpg"') + 4)
                             });
                         }
                     }
@@ -81,17 +108,19 @@ export default class PetScreen extends Component {
         } else {
             console.log('null');
         }
-        console.log('end');
-        for (var k = 0; k < pets.length; k++) {
-            var pet = pets[k];
-            console.log('-------------------', pet);
+        for (var u = 0; u < pets.length; u++) {
+            var element = pets[u];
+            console.log(element);
         }
+        this.setState({
+            dataSource: this.state.dataSource.cloneWithRows(pets)
+        })
     }
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'red'
+        backgroundColor: 'white'
     }
 });
