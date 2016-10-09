@@ -17,6 +17,7 @@ import {
 import Header from '../common/F8Header.js';
 import KindScreen from '../material/kind.js';
 import InstanceScreen from '../dungeons/instance.js';
+import PetScreen from '../collection/pet.js';
 
 const EMPTY_CELL_HEIGHT = Dimensions.get('window').height > 600 ? 200 : 150;
 const LIST_VIEW_ITEM = (Dimensions.get('window').width - 20) / 3;
@@ -29,7 +30,8 @@ export default class HomeScreen extends Component {
         var ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.state = {
             dataSource: ds.cloneWithRows([{ name: '道具', key: 'item', icon: require('../common/img/ic_launcher.png') }
-                , { name: '副本掉落', key: 'dungeons', icon: require('../common/img/ic_launcher.png') }])
+                , { name: '副本掉落', key: 'dungeons', icon: require('../common/img/ic_launcher.png') }
+                , { name: '宠物', key: 'pet', icon: require('../common/img/ic_launcher.png') }])
         };
     }
 
@@ -106,6 +108,9 @@ export default class HomeScreen extends Component {
             case 'dungeons':
                 this.gotoDungeonsScreen(rowData);
                 break;
+            case 'pet':
+                this.gotoPetScreen(rowData);
+                break;
             default:
                 break;
         }
@@ -125,6 +130,16 @@ export default class HomeScreen extends Component {
         this.props.navigator.push({
             name: 'instanceScreen',
             component: InstanceScreen,
+            params: {
+                name: rowData.name,
+            }
+        });
+    }
+
+    gotoPetScreen(rowData) {
+        this.props.navigator.push({
+            name: 'petScreen',
+            component: PetScreen,
             params: {
                 name: rowData.name,
             }
