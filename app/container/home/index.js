@@ -70,7 +70,7 @@ export default class HomeScreen extends Component {
                 this.onRowClicked(rowData);
             } }>
                 <View style={{ width: LIST_VIEW_ITEM, height: LIST_VIEW_ITEM }}>
-                    <Image style={{ width: LIST_VIEW_ITEM, height: LIST_VIEW_ITEM }} source={rowData.icon}>
+                    <Image style={{ width: LIST_VIEW_ITEM, height: LIST_VIEW_ITEM, borderRadius: 5 }} source={rowData.icon}>
                     </Image>
                 </View>
                 <Text style={styles.name}>
