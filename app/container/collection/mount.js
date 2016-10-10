@@ -1,7 +1,7 @@
 /**
- * 宠物页面
+ * 坐骑页面
  * 
- * Created by Troy on 2016-10-09 10:42:25
+ * Created by Troy on 2016-10-10 11:22:52
  */
 'use strict'
 
@@ -17,7 +17,7 @@ import {
 import Header from '../common/F8Header.js';
 import IdentityCell from '../common/IdentityCell.js';
 
-export default class PetScreen extends Component {
+export default class MountScreen extends Component {
 
     constructor(props) {
         super(props);
@@ -69,6 +69,7 @@ export default class PetScreen extends Component {
                 first={rowData.version}
                 second={rowData.dropPoint}
                 flex={0}
+                imageHeight={100}
                 />
         );
     }
@@ -89,14 +90,14 @@ export default class PetScreen extends Component {
     }
 
     getHTML() {
-        fetch('http://www.ffxiv.cn/show/6')
+        fetch('http://www.ffxiv.cn/show/5')
             .then((response) => {
                 this.analyizeHTML(response._bodyText)
             })
     }
 
     analyizeHTML(html) {
-        var pets = [];
+        var mounts = [];
         var f = html.match(/<tbody>[\s\S]*?<\/tbody>/g);
         if (f) {
             for (var index = 0; index < f.length; index++) {
@@ -107,16 +108,18 @@ export default class PetScreen extends Component {
                         var tr = ff[j];
                         var fff = tr.match(/<td[\s\S]*?<\/td>/g);
                         if (fff && j !== 0) {
-                            pets.push({
-                                name: fff[0].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, ''),
-                                version: fff[1].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, ''),
+                            mounts.push({
+                                name: fff[0].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, '').replace(/(<img.*?\/>)/g, '').replace(/(<span.*?>)?(<\/span>)?/g, '').replace(/(<p.*?>)?(<\/p>)?/g, '').replace(/(&nbsp;)/g, ''),
+                                version: fff[1].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, '').replace(/(<span.*?>)?(<\/span>)?/g, '').replace(/(<p.*?>)?(<\/p>)?/g, '').replace(/(&nbsp;)/g, ''),
                                 dropPoint: fff[2].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '')
                                     .replace(/(<strong.*?>)?(<\/strong>)?/g, '')
                                     .replace(/(<span.*?">)?(<\/span>)?/g, '')
                                     .replace(/(<br.*?\/>)?/g, '')
                                     .replace(/(<a.*?">)?(<\/a>)?/g, '')
                                     .replace(/[&nbsp;\s]?/g, '')
-                                    .replace(/(<tyle=.*?">)?(<\/>)?/g, ''),
+                                    .replace(/(<tyle=.*?">)?(<\/>)?/g, '')
+                                    .replace(/(<div.*?>)?(<\/div>)?/g, '')
+                                    .replace(/([rl]?d?quot?)/g, '"'),
                                 image: fff[3].substring(fff[3].indexOf('http:'), fff[3].indexOf('.jpg"') + 4)
                             });
                         }
@@ -127,7 +130,7 @@ export default class PetScreen extends Component {
             console.log('null');
         }
         this.setState({
-            dataSource: this.state.dataSource.cloneWithRows(pets),
+            dataSource: this.state.dataSource.cloneWithRows(mounts),
             isLoading: false
         });
     }

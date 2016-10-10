@@ -49,9 +49,10 @@ export default class ItemCell extends Component {
         let height = this.props.height || DEFAULT_HEIGHT;
         let classJob = this.props.classJob;
         let secondFlex = this.props.flex === undefined ? 1 : 0;
+        let imageHeight = this.props.imageHeight || height;
         return (
             <View style={[styles.container, { minHeight: height + DEFAULT_PADDING * 2 }]} >
-                <Image style={[styles.icon, { width: height, height: height }]}
+                <Image style={[styles.icon, { width: imageHeight, height: imageHeight }]}
                     source={this.props.icon}
                     resizeMode='contain' >
                 </Image>
@@ -70,7 +71,7 @@ export default class ItemCell extends Component {
                     <Text style={styles.first} >
                         {this.state.first}
                     </Text>
-                    <Text style={[styles.second, {flex: secondFlex}]} numberOfLines={3}>
+                    <Text style={[styles.second, {flex: secondFlex}]}>
                         {this.state.second}
                     </Text>
                     {
