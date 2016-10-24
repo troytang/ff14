@@ -14,7 +14,10 @@ import {
     Platform,
     TouchableOpacity
 } from 'react-native';
+import { connect } from 'react-redux';
+import { init } from '../../redux/action/init.js';
 import Header from '../common/F8Header.js';
+import LoadingView from '../common/LoadingView.js';
 import KindScreen from '../material/kind.js';
 import InstanceScreen from '../dungeons/instance.js';
 import PetScreen from '../collection/pet.js';
@@ -24,7 +27,7 @@ const EMPTY_CELL_HEIGHT = Dimensions.get('window').height > 600 ? 200 : 150;
 const LIST_VIEW_ITEM = (Dimensions.get('window').width - 20) / 3;
 const TEXT_HEIGHT = 20;
 
-export default class HomeScreen extends Component {
+class HomeScreen extends Component {
 
     constructor(props) {
         super(props);
@@ -52,14 +55,18 @@ export default class HomeScreen extends Component {
                     title='FINAL FANTASY XIV'
                     leftItem={leftItem}
                     rightItem={this.props.rightItem}
-                    background={require('./img/schedule-background.png') }>
-                    {this.renderHeaderTitle() }
+                    background={require('./img/schedule-background.png')}>
+                    {this.renderHeaderTitle()}
                 </Header>
                 <ListView
                     enableEmptySections={true}
-                    renderRow={this.renderRow.bind(this) }
+                    renderRow={this.renderRow.bind(this)}
                     dataSource={this.state.dataSource}
                     contentContainerStyle={styles.list} />
+                <LoadingView
+                    // visible={!this.props.hasInit}
+                    visible={false}
+                    text='初始化...' />
             </View>
         )
     }
@@ -166,6 +173,16 @@ export default class HomeScreen extends Component {
     switchDay(page) {
         this.props.switchDay(1);
     }
+
+    getAllItemForName2Key() {
+
+    }
+}
+
+function select(state) {
+    return ({
+        hasInit: state.config.hasInit
+    });
 }
 
 const styles = StyleSheet.create({
@@ -194,3 +211,5 @@ const styles = StyleSheet.create({
         fontSize: 16
     }
 });
+
+export default connect(select)(HomeScreen);
