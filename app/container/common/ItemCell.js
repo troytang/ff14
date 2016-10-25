@@ -29,7 +29,7 @@ export default class ItemCell extends Component {
         return (
             <TouchableOpacity style={[styles.container, {height: height + DEFAULT_PADDING * 2}]} 
                 onPress={() => {this.props.onPress()}}>
-                <Image style={[styles.icon, {width: height, height: height}]}
+                <Image style={[styles.icon, {width: height, height: height}, {borderRadius: this.props.iconRadius || 8}]}
                     source={this.props.icon}
                     resizeMode='contain' >
                 </Image>

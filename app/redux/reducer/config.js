@@ -7,7 +7,8 @@
 'use strict'
 
 const initialState = {
-    hasInit: false
+    hasInit: false,
+    startIndex: 0
 }
 
 function config(state = initialState, action) {
@@ -16,6 +17,8 @@ function config(state = initialState, action) {
             return Object.assign({}, state, action.config);
         case 'clear':
             return Object.assign({}, state, {});
+        case 'loading':
+            return Object.assign({}, state, action.startIndex);
         default:
             return state;
     }

@@ -5,11 +5,9 @@
 
 import { combineReducers } from 'redux';
 import configReducer from './config.js';
+import name2KeysReducer from './name-key.js';
 
 export default combineReducers({
-    config: configReducer
+    config: configReducer,
+    name2Keys: name2KeysReducer
 });
-
-function config(state, action) {
-
-}

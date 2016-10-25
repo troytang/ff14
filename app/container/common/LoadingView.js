@@ -31,7 +31,7 @@ export default class LoadingView extends Component {
                             size={this.props.size}/>
                         {
                             (this.props.text) &&
-                            <Text style={styles.text}>
+                            <Text style={styles.text} >
                                 {this.props.text}
                             </Text>
                         }
@@ -85,6 +85,8 @@ const styles = StyleSheet.create({
     text: {
         color: 'white',
         fontSize: 14,
-        marginTop: 4
+        marginTop: 4,
+        textAlign: 'center',
+        textAlignVertical: 'center'
     }
 });

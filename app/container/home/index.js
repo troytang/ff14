@@ -15,13 +15,15 @@ import {
     TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
-import { init } from '../../redux/action/init.js';
+import { config, loading } from '../../redux/action/config.js';
+import { name2Keys } from '../../redux/action/name-key.js';
 import Header from '../common/F8Header.js';
 import LoadingView from '../common/LoadingView.js';
 import KindScreen from '../material/kind.js';
 import InstanceScreen from '../dungeons/instance.js';
 import PetScreen from '../collection/pet.js';
 import MountScreen from '../collection/mount.js';
+import ProduceScreen from '../produce/index.js';
 
 const EMPTY_CELL_HEIGHT = Dimensions.get('window').height > 600 ? 200 : 150;
 const LIST_VIEW_ITEM = (Dimensions.get('window').width - 20) / 3;
@@ -31,13 +33,24 @@ class HomeScreen extends Component {
 
     constructor(props) {
         super(props);
+
+        this.startIndex = 0;
+        this.name2Keys = {};
         var ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.state = {
             dataSource: ds.cloneWithRows([{ name: '道具', key: 'item', icon: require('../common/img/ic_launcher.png') }
                 , { name: '副本掉落', key: 'dungeons', icon: require('../common/img/ic_launcher.png') }
                 , { name: '坐骑', key: 'mount', icon: require('../common/img/ic_launcher.png') }
-                , { name: '宠物', key: 'pet', icon: require('../common/img/ic_launcher.png') }])
+                , { name: '宠物', key: 'pet', icon: require('../common/img/ic_launcher.png') }
+                , { name: '生产', key: 'produce', icon: require('../common/img/ic_launcher.png')}])
         };
+    }
+
+    componentDidMount() {
+        if (!this.props.hasInit) {
+            // 获取 name-key 对
+            this.getAllItemForName2Key();
+        }
     }
 
     render() {
@@ -64,9 +77,9 @@ class HomeScreen extends Component {
                     dataSource={this.state.dataSource}
                     contentContainerStyle={styles.list} />
                 <LoadingView
-                    // visible={!this.props.hasInit}
-                    visible={false}
-                    text='初始化...' />
+                    visible={!this.props.hasInit}
+                    // visible={false}
+                    text={' 初始化:' + this.props.startIndex} />
             </View>
         )
     }
@@ -123,6 +136,9 @@ class HomeScreen extends Component {
             case 'mount':
                 this.gotoMountScreen(rowData);
                 break;
+            case 'produce':
+                this.gotoProduceScreen(rowData);
+                break;
             default:
                 break;
         }
@@ -170,18 +186,65 @@ class HomeScreen extends Component {
         });
     }
 
+    gotoProduceScreen(rowData) {
+        this.props.navigator.push({
+            name: 'produceScreen',
+            component: ProduceScreen,
+            params: {
+                name: rowData.name
+            }
+        });
+    }
+
     switchDay(page) {
         this.props.switchDay(1);
     }
 
     getAllItemForName2Key() {
-
+        fetch('http://gxh.dw.sdo.com:8080/ff14.portal/business/item/getItemDataList.html?keyword=&itemUIKindKey=0&itemUICategory=0&itemRarity=0&classJobKey=0&maxItemLevel=1000&minItemLevel=0&basicParamKey=&basicParamValue=0&startIndex=' + this.startIndex)
+            .then((response) => {
+                return JSON.parse(response._bodyText);
+            }).then((json) => {
+                if (json.data.length > 0) {
+                    this.startIndex += json.data.length;
+                    this.props.dispatch(loading({
+                        startIndex: this.startIndex
+                    }));
+                    for (var index = 0; index < json.data.length; index++) {
+                        var element = json.data[index];
+                        let itemName = element.itemUINameCn;
+                        if (itemName !== '') {
+                            this.name2Keys[itemName] = element.itemKey;
+                            console.log('-----------', itemName + '  ' + element.itemKey);
+                        } else {
+                            fetch('http://gxh.dw.sdo.com:8080/ff14.portal/business/item/getItemTradeDataOfTheLatestHalfAmonthByAreaIdAndGroupId.html?areaId=1&groupId=6&itemKey=' + element.itemKey)
+                                .then((res) => {
+                                    return JSON.parse(res._bodyText);
+                                }).then((resJson) => {
+                                    if (resJson.data[0]) {
+                                        this.name2Keys[resJson.data[0].itemNameCn] = resJson.data[0].itemKey;
+                                        console.log('+++++++++', resJson.data[0].itemNameCn + '  ' + resJson.data[0].itemKey);
+                                    } else {
+                                        // 连拍卖行接口都没有中文名的暂时不管了
+                                    }
+                                })
+                        }
+                    }
+                    this.getAllItemForName2Key();
+                } else {
+                    this.props.dispatch(config({
+                        hasInit: true
+                    }));
+                    this.props.dispatch(name2Keys(this.name2Keys));
+                }
+            });
     }
 }
 
 function select(state) {
     return ({
-        hasInit: state.config.hasInit
+        hasInit: state.config.hasInit,
+        startIndex: state.config.startIndex
     });
 }
 
