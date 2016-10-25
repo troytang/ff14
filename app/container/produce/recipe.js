@@ -107,7 +107,45 @@ export default class RecipeScreen extends Component {
                         var tr = ff[j];
                         var fff = tr.match(/<td[\s\S]*?<\/td>/g);
                         if (fff && j !== 0) {
-                            console.log('------', fff);
+                            console.log('-----------------', fff);
+                            let iconUrl = fff[0].match(/(src="http.*?\.png)/g)[0].substring(5);
+                            let name = fff[1].match(/(">.*?<\/a>)/g)[0].replace(/(">)?(<\/a>)?/g, '');
+                            let classJob = fff[2].replace(/(<td.*?>)?(<\/td>)?/g, '');
+                            let level = fff[3].replace(/(<td.*?>)?(<\/td>)?/g, '');
+                            let type = fff[4].replace(/(<td.*?>)?(<\/td>)?/g, '');
+                            let recipes = [];
+                            var ffff = fff[5].match(/(<p.*?>).*?(<\/p>)/g);
+                            if (ffff) {
+                                for (var p = 0; p < ffff.length; p++) {
+                                    let reci = ffff[p];
+                                    let reciIconUrl = reci.match(/(src="http.*?\.png)/g)[0].substring(5);
+                                    let reciName = reci.replace(/(<p>[\s\S]*?\/>)?(<\/a>[\s\S]*?<\/p>)?/g, '');
+                                    let reciCount = reci.replace(/(<p>[\s\S]*?<\/a>)?(<\/p>)?/g, '').replace(/(\[.*?\])/g, '');
+                                    let reciProduceLevel = reci.replace(/(<p>[\s\S]*?'>)?(<\/span>[\s\S]*?<\/p>)?/g, '');
+                                    if (reciProduceLevel) {
+                                        reciProduceLevel = reci.replace(/(<p>[\s\S]*?'>)?(<\/span>[\s\S]*?<\/p>)?/g, '');
+                                    }
+                                    recipes.push({
+                                        reciIconUrl: reciIconUrl,
+                                        reciName: reciName,
+                                        reciCount: reciCount,
+                                        reciProduceLevel: reciProduceLevel
+                                    });
+                                }
+                            }
+                            let comsumptions = [];
+                            var fffff = fff[6].match(/(<p.*?>).*?(<\/p>)/g);
+                            if (fffff) {
+                                for (var q = 0; q < fffff.length; q++) {
+                                    let comsp = fffff[q];
+                                    let comspUrl = comsp.match(/(src="http.*?\.png)/g)[0].substring(5);
+                                    let comspName = comsp.replace(/(<p>[\s\S]*?\/>)?(<\/a>[\s\S]*?<\/p>)?/g, '');
+                                    let comspCount = comsp.replace(/(<p>[\s\S]*?<\/a>)?(<\/p>)?/g, '');
+                                    comsumptions.push(comsp);
+                                }
+                            }
+                            let remark = fff[7].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<a.*?>)?(<\/a>)?/g, '');
+                            console.log('bbbbbbb', recipes);
                             // pets.push({
                             //     name: fff[0].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, ''),
                             //     version: fff[1].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, ''),
