@@ -102,7 +102,7 @@ export default class RecipeScreen extends Component {
     }
 
     getHTML() {
-        fetch('http://cha.17173.com/ff14/recipe?type=' + this.props.type)
+        fetch('http://cha.17173.com/ff14/recipe?type=' + this.props.type + '&' + this.props.level)
             .then((response) => {
                 this.analyizeHTML(response._bodyText);
                 this.analyizeTotalCount(response._bodyText);
@@ -118,7 +118,7 @@ export default class RecipeScreen extends Component {
             isLoading: true
         });
         console.log('+++++++++', this.state.dataSource._dataBlob.s1.length);
-        fetch('http://cha.17173.com/ff14/recipe?type=' + this.props.type + '&page=' + this.currPage)
+        fetch('http://cha.17173.com/ff14/recipe?type=' + this.props.type + '&page=' + this.currPage + '&' + this.props.level)
             .then((response) => {
                 this.analyizeHTML(response._bodyText);
                 this.currPage++;

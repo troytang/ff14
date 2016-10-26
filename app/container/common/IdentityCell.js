@@ -76,7 +76,7 @@ export default class ItemCell extends Component {
                     </Text>
                     {
                         this.state.third &&
-                        <Text style={styles.second} >
+                        <Text style={[styles.second, {flex: secondFlex}]} >
                             {this.state.third}
                         </Text>
                     }
