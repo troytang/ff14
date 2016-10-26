@@ -17,6 +17,7 @@ import {
 import Header from '../common/F8Header.js';
 import IdentityCell from '../common/IdentityCell.js';
 import RecipeView from '../common/RecipeView.js';
+import CostScreen from './cost.js';
 
 export default class RecipeScreen extends Component {
 
@@ -72,7 +73,15 @@ export default class RecipeScreen extends Component {
             <RecipeView
                 ins={rowData}
                 onPress={() => {
-                    console.log('=======', rowData);
+                    this.props.navigator.push({
+                        name: 'costScreen',
+                        component: CostScreen,
+                        type: 'Bottom',
+                        params: {
+                            name: rowData.name,
+                            ins: rowData
+                        }
+                    })
                 }} />
         );
     }

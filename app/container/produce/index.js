@@ -11,7 +11,8 @@ import {
     ListView,
     StyleSheet,
     ActivityIndicator,
-    InteractionManager
+    InteractionManager,
+    ToastAndroid
 } from 'react-native';
 import Header from '../common/F8Header.js';
 import ItemCell from '../common/ItemCell.js';
@@ -79,6 +80,10 @@ export default class ProduceScreen extends Component {
                 desc={rowData.kind === 0 ? '制造' : '采集'}
                 iconRadius={3}
                 onPress={() => {
+                    if (rowData.kind === 1) {
+                        ToastAndroid.show('采集系还不支持', ToastAndroid.SHORT);
+                        return;
+                    }
                     this.props.navigator.push({
                         name: 'recipeScreen',
                         component: RecipeScreen,

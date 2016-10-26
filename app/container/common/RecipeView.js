@@ -75,7 +75,7 @@ export default class RecipeView extends Component {
         return (
             <View style={styles.reciLine} >
                 <View style={styles.vLine} />
-                <View style={styles.hLine} />
+                <View style={[styles.hLine, {width: (ICON_HEIGHT / 2 + 20)}]} />
                 <Image style={{ width: 20, height: 20 }}
                     source={{ uri: comsp.comspUrl }} />
                 <Text style={{ paddingLeft: 8 }} >{comsp.comspName}{comsp.comspCount}</Text>
