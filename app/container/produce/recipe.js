@@ -16,15 +16,17 @@ import {
 } from 'react-native';
 import Header from '../common/F8Header.js';
 import IdentityCell from '../common/IdentityCell.js';
+import RecipeView from '../common/RecipeView.js';
 
 export default class RecipeScreen extends Component {
 
     constructor(props) {
         super(props);
 
-        var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+        var ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.state = {
             isLoading: true,
+            isLoadedAll: false,
             dataSource: ds.cloneWithRows([])
         };
 
@@ -35,6 +37,9 @@ export default class RecipeScreen extends Component {
                 this.props.navigator.pop();
             }
         };
+
+        this.currPage = 1;
+        this.totalCount = undefined;
     }
 
     componentDidMount() {
@@ -50,12 +55,13 @@ export default class RecipeScreen extends Component {
                     title={this.props.name}
                     leftItem={this.leftItem}
                     rightItem={this.props.rightItem}
-                    background={require('../home/img/schedule-background.png') }>
+                    background={require('../home/img/schedule-background.png')}>
                 </Header>
                 <ListView
                     dataSource={this.state.dataSource}
                     renderRow={this.renderRow.bind(this)}
                     renderFooter={this.renderFooter.bind(this)}
+                    onEndReached={this.getHTMLMore.bind(this)}
                     />
             </View>
         );
@@ -63,18 +69,16 @@ export default class RecipeScreen extends Component {
 
     renderRow(rowData) {
         return (
-            <IdentityCell
-                icon={{uri: rowData.image}}
-                name={rowData.name}
-                first={rowData.version}
-                second={rowData.dropPoint}
-                flex={0}
-                />
+            <RecipeView
+                ins={rowData}
+                onPress={() => {
+                    console.log('=======', rowData);
+                }} />
         );
     }
 
     renderFooter() {
-        if (this.state.isLoading) {
+        if (this.state.isLoading && !this.state.isLoadedAll) {
             return (
                 <ActivityIndicator
                     animating={true}
@@ -91,7 +95,24 @@ export default class RecipeScreen extends Component {
     getHTML() {
         fetch('http://cha.17173.com/ff14/recipe?type=' + this.props.type)
             .then((response) => {
-                this.analyizeHTML(response._bodyText)
+                this.analyizeHTML(response._bodyText);
+                this.analyizeTotalCount(response._bodyText);
+                this.currPage++;
+            })
+    }
+
+    getHTMLMore() {
+        if (this.state.isLoadedAll || this.state.isLoading) {
+            return;
+        }
+        this.setState({
+            isLoading: true
+        });
+        console.log('+++++++++', this.state.dataSource._dataBlob.s1.length);
+        fetch('http://cha.17173.com/ff14/recipe?type=' + this.props.type + '&page=' + this.currPage)
+            .then((response) => {
+                this.analyizeHTML(response._bodyText);
+                this.currPage++;
             })
     }
 
@@ -107,13 +128,12 @@ export default class RecipeScreen extends Component {
                         var tr = ff[j];
                         var fff = tr.match(/<td[\s\S]*?<\/td>/g);
                         if (fff && j !== 0) {
-                            console.log('-----------------', fff);
                             let iconUrl = fff[0].match(/(src="http.*?\.png)/g)[0].substring(5);
                             let name = fff[1].match(/(">.*?<\/a>)/g)[0].replace(/(">)?(<\/a>)?/g, '');
                             let classJob = fff[2].replace(/(<td.*?>)?(<\/td>)?/g, '');
                             let level = fff[3].replace(/(<td.*?>)?(<\/td>)?/g, '');
                             let type = fff[4].replace(/(<td.*?>)?(<\/td>)?/g, '');
-                            let recipes = [];
+                            let recis = [];
                             var ffff = fff[5].match(/(<p.*?>).*?(<\/p>)/g);
                             if (ffff) {
                                 for (var p = 0; p < ffff.length; p++) {
@@ -122,10 +142,10 @@ export default class RecipeScreen extends Component {
                                     let reciName = reci.replace(/(<p>[\s\S]*?\/>)?(<\/a>[\s\S]*?<\/p>)?/g, '');
                                     let reciCount = reci.replace(/(<p>[\s\S]*?<\/a>)?(<\/p>)?/g, '').replace(/(\[.*?\])/g, '');
                                     let reciProduceLevel = reci.replace(/(<p>[\s\S]*?'>)?(<\/span>[\s\S]*?<\/p>)?/g, '');
-                                    if (reciProduceLevel) {
-                                        reciProduceLevel = reci.replace(/(<p>[\s\S]*?'>)?(<\/span>[\s\S]*?<\/p>)?/g, '');
+                                    if (reciProduceLevel.indexOf('<p>') >= 0) {
+                                        reciProduceLevel = undefined
                                     }
-                                    recipes.push({
+                                    recis.push({
                                         reciIconUrl: reciIconUrl,
                                         reciName: reciName,
                                         reciCount: reciCount,
@@ -141,34 +161,44 @@ export default class RecipeScreen extends Component {
                                     let comspUrl = comsp.match(/(src="http.*?\.png)/g)[0].substring(5);
                                     let comspName = comsp.replace(/(<p>[\s\S]*?\/>)?(<\/a>[\s\S]*?<\/p>)?/g, '');
                                     let comspCount = comsp.replace(/(<p>[\s\S]*?<\/a>)?(<\/p>)?/g, '');
-                                    comsumptions.push(comsp);
+                                    comsumptions.push({
+                                        comspUrl: comspUrl,
+                                        comspName: comspName,
+                                        comspCount: comspCount
+                                    });
                                 }
                             }
-                            let remark = fff[7].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<a.*?>)?(<\/a>)?/g, '');
-                            console.log('bbbbbbb', recipes);
-                            // pets.push({
-                            //     name: fff[0].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, ''),
-                            //     version: fff[1].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '').replace(/(<strong.*?>)?(<\/strong>)?/g, ''),
-                            //     dropPoint: fff[2].replace(/(<td.*>)?[\r\n\t]*(<\/td>)?/g, '')
-                            //         .replace(/(<strong.*?>)?(<\/strong>)?/g, '')
-                            //         .replace(/(<span.*?">)?(<\/span>)?/g, '')
-                            //         .replace(/(<br.*?\/>)?/g, '')
-                            //         .replace(/(<a.*?">)?(<\/a>)?/g, '')
-                            //         .replace(/[&nbsp;\s]?/g, '')
-                            //         .replace(/(<tyle=.*?">)?(<\/>)?/g, ''),
-                            //     image: fff[3].substring(fff[3].indexOf('http:'), fff[3].indexOf('.jpg"') + 4)
-                            // });
+                            let remark = fff[7].replace(/(<td.*?>)?[\r\n\t]*?(<\/td>)?/g, '').replace(/(<a.*?>)?(<\/a>)?/g, '');
+                            recipes.push({
+                                iconUrl: iconUrl,
+                                name: name,
+                                classJob: classJob,
+                                level: level,
+                                type: type,
+                                recis: recis,
+                                comsumptions: comsumptions,
+                                remark: remark
+                            });
                         }
                     }
                 }
             }
+            console.log(recipes);
         } else {
             console.log('null');
         }
         this.setState({
-            dataSource: this.state.dataSource.cloneWithRows(recipes),
-            isLoading: false
+            dataSource: this.state.dataSource.cloneWithRows(this.state.dataSource._dataBlob.s1.concat(recipes)),
+            isLoading: false,
+            isLoadedAll: (this.totalCount === undefined) ? false : (this.totalCount <= this.state.dataSource._dataBlob.s1.length)
         });
+    }
+
+    analyizeTotalCount(html) {
+        var f = html.match(/(<span class="fl color-duan lh30">[\s\S]*?<\/span>)/g)[0]
+            .match(/(<strong.*?>)[\s\S]*?(<\/strong>)/g)[0]
+            .replace(/(<strong.*?>)?(<\/strong>)?/g, '');
+        this.totalCount = f;
     }
 };
 

@@ -11,7 +11,6 @@ const initialState = {
 }
 
 function name2Keys(state = initialState, action) {
-    console.log('--------------', action.name2Keys);
     switch (action.type) {
         case 'keys':
             return Object.assign({}, state, action.name2Keys);
